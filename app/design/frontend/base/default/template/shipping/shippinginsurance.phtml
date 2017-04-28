@@ -1,0 +1,6 @@
+<?php if ($this->isModuleEnabled()): ?>
+<span>
+    <b>Buy shipping insurance</b> <b style="color: green;">(<?php echo $this->getInsuranceCost();?>)</b>
+    <input style="vertical-align: bottom; position: relative; top: -1px;" type="checkbox" name="shippinginsurance_enabled" value="1">
+</span>
+<?php endif ?>
