@@ -2,6 +2,9 @@
 
 class Itransition_ShippingInsurance_Model_Total_Quote extends Mage_Sales_Model_Quote_Address_Total_Abstract
 {
+    const FIXED = 1;
+    const PERCENT = 2;
+
     protected $_code = 'shipping_insurance';
 
     public function collect(Mage_Sales_Model_Quote_Address $address)
@@ -13,8 +16,8 @@ class Itransition_ShippingInsurance_Model_Total_Quote extends Mage_Sales_Model_Q
             if (!count($items)) {
                 return $this;
             }
-            $costInsurance = $this->getInsuranceCost($address);
-            $this->setGrandTotalWithInsuranceCost($address, $costInsurance);
+            $insuranceCost = $this->getInsuranceCost($address);
+            $this->setGrandTotalWithInsuranceCost($address, $insuranceCost);
         }
     }
 
@@ -23,12 +26,12 @@ class Itransition_ShippingInsurance_Model_Total_Quote extends Mage_Sales_Model_Q
         $label = Mage::getStoreConfig('shippinginsurance_setting/shippinginsurance_group/shippinginsurance_label');
 
         if ($address->getInsuranceShippingMethod()) {
-            $costInsurance = $address->getShippingInsurance();
+            $insuranceCost = $address->getShippingInsurance();
             $address->addTotal(
                 [
                     'code'  => $this->getCode(),
                     'title' => $label,
-                    'value' => $costInsurance
+                    'value' => $insuranceCost
                 ]
             );
         }
@@ -38,26 +41,26 @@ class Itransition_ShippingInsurance_Model_Total_Quote extends Mage_Sales_Model_Q
 
     private function getInsuranceCost(Mage_Sales_Model_Quote_Address $address)
     {
-        $costInsurance = 0;
+        $insuranceCost = 0;
         $subTotal = (float)$address->getSubtotal();
-        $typeInsurance = Mage::getStoreConfig('shippinginsurance_setting/shippinginsurance_group/shippinginsurance_type');
-        $valueInsurance = Mage::getStoreConfig('shippinginsurance_setting/shippinginsurance_group/shippinginsurance_value');
+        $insuranceType = Mage::getStoreConfig('shippinginsurance_setting/shippinginsurance_group/shippinginsurance_type');
+        $insuranceValue = Mage::getStoreConfig('shippinginsurance_setting/shippinginsurance_group/shippinginsurance_value');
 
 
-        if ($typeInsurance == 1) {
-            $costInsurance = round($valueInsurance, 2, PHP_ROUND_HALF_UP);
-        } elseif ($typeInsurance == 0) {
-            $costInsurance = round($subTotal * ($valueInsurance / 100), 2, PHP_ROUND_HALF_UP);
+        if ($insuranceType == self::FIXED) {
+            $insuranceCost = round($insuranceValue, 2, PHP_ROUND_HALF_UP);
+        } elseif ($insuranceType == self::PERCENT) {
+            $insuranceCost = round($subTotal * ($insuranceValue / 100), 2, PHP_ROUND_HALF_UP);
         }
 
-        return $costInsurance;
+        return $insuranceCost;
     }
 
-    private function setGrandTotalWithInsuranceCost(Mage_Sales_Model_Quote_Address $address, $costInsurance)
+    private function setGrandTotalWithInsuranceCost(Mage_Sales_Model_Quote_Address $address, $insuranceCost)
     {
         $quote = $address->getQuote();
-        $quote->setShippingInsurance($costInsurance);
-        $address->setShippingInsurance($costInsurance);
+        $quote->setShippingInsurance($insuranceCost);
+        $address->setShippingInsurance($insuranceCost);
 
         if ($address->getInsuranceShippingMethod()) {
             $address->setGrandTotal($address->getGrandTotal() + $address->getShippingInsurance());
